@@ -1,0 +1,8 @@
+{
+    "module_width": 0.21,  
+    "module_height": 4.0,  
+    "font_size": 3,  
+    "text_distance": 3,
+    "quiet_zone": 1,
+    "write_text": true
+}

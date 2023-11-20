@@ -1,0 +1,19 @@
+**/*.pdf
+
+# Python dependencies
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+env/
+labeler_env/
+
+
+dist/*
+
+src/__pycache__
+index.spec
