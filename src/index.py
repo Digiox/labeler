@@ -41,11 +41,16 @@ def browse_csv_file(entry):
 
 # Supprime une ligne de champs spécifiée
 def remove_csv_supplier_fields(frame):
-    # Enlève la ligne de la liste des entrées et de l'affichage
-    for widgets in frame.winfo_children():
-        widgets.destroy()
+    # Retrieve the index of the frame
+    index = next((i for i, (_, _, f) in enumerate(entries) if f == frame), None)
+    if index is not None:
+        # Remove the frame from the list
+        entries.pop(index)
+
+    # Remove the frame from the display
+    for widget in frame.winfo_children():
+        widget.destroy()
     frame.destroy()
-    entries[:] = [(csv_e, supp_e, f) for csv_e, supp_e, f in entries if f.winfo_ismapped()]
 
 # Fonction pour générer les étiquettes
 def generate_labels():
@@ -56,6 +61,7 @@ def generate_labels():
         messagebox.showwarning("Warning", "Please provide output file name and destination folder.")
         return
     try:
+        print(entries)
         generate_labels_from_csv(entries, output_folder, file_name, log_area)
 
         messagebox.showinfo("Success", "Labels have been generated successfully.")

@@ -63,28 +63,43 @@ def create_and_draw_labels(data: pd.DataFrame, text_widget: ScrolledText.Scrolle
                 price = row['Prix de vente']
                 barcode = str(row['Code-barres'])
                 supplier_ref = row['Ref. fournisseur']
+                variant = row['Déclinaison']
 
                 # Create the label with a red border
                 color = "white"
                 img = Image.new('RGB', (label_width_px, label_height_px), color)
                 draw = ImageDraw.Draw(img)
                 draw.rectangle(((0, 0), (label_width_px-1, label_height_px-1)), outline='black', width=1)
-                font = ImageFont.truetype('arial.ttf', 15)
+                font = ImageFont.truetype('arial.ttf', 25)
                 print(f"supplier: {supplier}")
                 label_text = f"ID: {product_id}\n{product_name}\nRef: {supplier_ref}\n{supplier}"
-                price_text = f"{price} €"
+                if pd.isna(variant):
+                    price_text = f"{price} €"
+                else:
+                    price_text = f"{price} €\n{variant}"
 
                 # Draw label text at the top-left corner
                 draw.text((10, 10), label_text, fill='black', font=font)
 
                 # Define a larger font
-                large_font = ImageFont.truetype('arial.ttf', 25)
+                large_font_size = 32
+                # Créer un objet font pour le price_text
+                # Créer un objet font pour le price_text
+                large_font = ImageFont.truetype('arial.ttf', large_font_size)
 
-                # Calculate the width of the label to align the price to the right
-               
-                price_x_position = points_to_pixels(label_width_pt - 10 - 25)  # Convert 10 points offset to pixels
+                # Utiliser textbbox pour obtenir la boîte englobante du texte de price_text
+                # Les coordonnées de départ (0, 0) sont utilisées pour mesurer la taille du texte
+                bbox = draw.textbbox((0, 0), price_text, font=large_font)
 
-                # Draw price text at the top-right corner
+                # bbox contient (x0, y0, x1, y1)
+                # La largeur du texte est x1 - x0
+                price_text_width = bbox[2] - bbox[0]
+
+                # Calculer la position x pour price_text
+                # On soustrait la largeur du texte price_text et on divise par 2 pour centrer, puis on ajoute la marge de gauche
+                price_x_position = label_width_px - price_text_width - 10  # 10 est la marge de gauche pour label_text
+
+                # Dessiner price_text avec la nouvelle position x
                 draw.text((price_x_position, 10), price_text, fill='black', font=large_font)
                 
                 # Generate the barcode with options to improve quality
