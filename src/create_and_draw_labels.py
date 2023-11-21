@@ -2,22 +2,18 @@ import json
 import time
 import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
-from barcode import EAN13
-from barcode.writer import ImageWriter
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
+from barcode import EAN13 # type: ignore
+from barcode.writer import ImageWriter # type: ignore
+from reportlab.pdfgen import canvas # type: ignore
+from reportlab.lib.pagesizes import A4 # type: ignore
 import tkinter as tk
 import os
 import tkinter.scrolledtext as ScrolledText
 from points_to_pixels import points_to_pixels
 from typing import Tuple
 
+def create_and_draw_labels(data: pd.DataFrame, text_widget: ScrolledText.ScrolledText, c: canvas.Canvas, supplier: str, current_width: int, current_height: int) -> Tuple[int, int, int, int]:
 
-
-
-def create_and_draw_labels(data: pd.DataFrame, text_widget: ScrolledText.ScrolledText, c: canvas.Canvas, supplier: str, current_width: int, current_height: int) -> Tuple[int, int, int, int, canvas.Canvas]:
-     
-     
     try:
         with open("C:\\Users\\Digiox\\Documents\\code\\labeler\\src\\configs\\labels.json") as f:
             config = json.load(f)
@@ -29,20 +25,20 @@ def create_and_draw_labels(data: pd.DataFrame, text_widget: ScrolledText.Scrolle
         y_spacing = config['y_spacing']
     except Exception as e:
         text_widget.insert(tk.END, f"Error loading JSON file: {e}\n")
-        return 0, 0
+        return 0, 0, 0, 0
 
     # Cheking if the label dimensions are defined
     
     if not label_width_pt or not label_height_pt:
         text_widget.insert(tk.END, "Label dimensions are not defined.\n")
-        return 0, 0
+        return 0, 0, 0, 0
     else:
         text_widget.insert(tk.END, f"Label dimensions are {label_width_pt}x{label_height_pt} points.\n")
 
     # Cheking if the label spacing is defined
     if x_spacing is None or y_spacing is None:
         text_widget.insert(tk.END, "Label spacing is not defined.\n")
-        return 0, 0
+        return 0, 0, 0, 0
     else:
         text_widget.insert(tk.END, f"Label spacing is {x_spacing}x{y_spacing} points.\n")
 
@@ -58,7 +54,6 @@ def create_and_draw_labels(data: pd.DataFrame, text_widget: ScrolledText.Scrolle
     labels_failed = 0
 
     for index, row in data.iterrows():
-            time.sleep(0.5)
             print(f"index: {index}")
 
             try:
@@ -73,9 +68,10 @@ def create_and_draw_labels(data: pd.DataFrame, text_widget: ScrolledText.Scrolle
                 color = "white"
                 img = Image.new('RGB', (label_width_px, label_height_px), color)
                 draw = ImageDraw.Draw(img)
-                draw.rectangle([(0, 0), (label_width_px-1, label_height_px-1)], outline='black', width=1)
+                draw.rectangle(((0, 0), (label_width_px-1, label_height_px-1)), outline='black', width=1)
                 font = ImageFont.truetype('arial.ttf', 15)
-                label_text = f"ID: {product_id}\n{product_name}\nRef: {supplier_ref}\n{supplier}\ngeneration id: {index}"
+                print(f"supplier: {supplier}")
+                label_text = f"ID: {product_id}\n{product_name}\nRef: {supplier_ref}\n{supplier}"
                 price_text = f"{price} €"
 
                 # Draw label text at the top-left corner
@@ -114,7 +110,7 @@ def create_and_draw_labels(data: pd.DataFrame, text_widget: ScrolledText.Scrolle
                 
                 try:
                     # Save the label to a temporary image file
-                    temp_img_path = f'temp_img_{index}.png'
+                    temp_img_path = f'temp_img_{index}_{supplier}.png'
                     img.save(temp_img_path)
                 except Exception as e:
                     text_widget.insert(tk.END, f"Error saving temporary image file: {e}\n")
@@ -138,7 +134,12 @@ def create_and_draw_labels(data: pd.DataFrame, text_widget: ScrolledText.Scrolle
                     if current_height < label_height_pt:
                         c.showPage()  # Create a new page if there's no room for the next label
                         current_height = page_height
-                
+                # Juste avant de dessiner l'image sur le PDF :
+                if current_height - label_height_pt < 0:
+                    c.showPage()  # Créer une nouvelle page
+                    current_height = page_height  # Réinitialiser la hauteur
+                    current_width = 0  # Réinitialiser la largeur
+
                 # Remove temporary image files
                 os.remove(temp_img_path)
                 
@@ -149,4 +150,4 @@ def create_and_draw_labels(data: pd.DataFrame, text_widget: ScrolledText.Scrolle
             except Exception as e:
                 text_widget.insert(tk.END, f"Error generating label for {product_name}: {e}\n")
                 labels_failed += 1
-    return labels_generated, labels_failed, current_height, current_width, c
+    return labels_generated, labels_failed, current_height, current_width

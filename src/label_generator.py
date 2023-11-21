@@ -77,17 +77,13 @@ def generate_labels_from_csv(
                 continue
 
             try:
-                text_widget.insert(tk.END, f"Old current_width: {current_width}, Old current_height: {current_height}\n")
-                text_widget.insert(tk.END, f"Old labels_generated: {labels_generated}, Old Generation failures: {labels_failed}\n")
-                # That method loops through all the rows in the CSV file and creates a label for each row with the supplier name and the product name
-                new_labels_generated, new_labels_failed, actual_width, actual_height, new_canvas = create_and_draw_labels(csv_data, text_widget, c, supplier, current_width, current_height)
-                c = new_canvas
+                
+                new_labels_generated, new_labels_failed, current_height, current_width = create_and_draw_labels(csv_data, text_widget, c, supplier, current_width, current_height)
+
                 labels_generated = labels_generated + new_labels_generated
                 labels_failed = labels_failed + new_labels_failed
                 text_widget.insert(tk.END, f"Labels generated: {new_labels_generated}, Generation failures: {new_labels_failed} from {csv_file_path}\n")
-                text_widget.insert(tk.END, f"actual_width: {actual_width}, actual_height: {actual_height}\n")
-                current_width += actual_width
-                current_height += actual_height
+                
             except Exception as e:
                 text_widget.insert(tk.END, f"Error creating labels: {e}\n", "error")
                 print(e)
